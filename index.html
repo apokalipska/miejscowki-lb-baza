@@ -2071,13 +2071,14 @@
      Twój Code.gs może je odczytać (e.parameter.spreadsheetId / body.spreadsheetId),
      ale nie musi — jeśli wolisz, Code.gs może zamiast tego trzymać ID arkusza
      jako Script Property i wtedy po prostu je zignorować. Zobacz Code.gs. */
-  async function callAPI(action, extra = {}, method = 'GET') {
+  async function callAPI(action, extra = {}, method = 'GET', _isRetry = false) {
     if (!currentUser?.access_token) return null;
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       console.warn('[LB] APPS_SCRIPT_URL nie jest ustawiony — uzupełnij CONFIG (zobacz SETUP.md).');
       return { error: 'APPS_SCRIPT_URL nie jest skonfigurowany' };
     }
     const payload = { spreadsheetId: SPREADSHEET_ID, ...extra };
+    let result;
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 35000);
@@ -2096,11 +2097,23 @@
         r = await fetch(url.toString(), { signal: controller.signal });
       }
       clearTimeout(timeout);
-      return await r.json();
+      result = await r.json();
     } catch(e) {
       if(e.name==='AbortError') return { error: 'timeout' };
       return { error: e.message||'network_error' };
     }
+    // Token Google OAuth wygasa po ok. 1h — jeśli backend zgłosi nieważny token,
+    // odśwież go po cichu i spróbuj raz jeszcze (bez wylogowywania użytkownika).
+    const isAuthError = result && result.error && /token|Nieprawidłowy lub wygasły/i.test(result.error);
+    if (isAuthError && !_isRetry) {
+      try {
+        await refreshToken();
+        return await callAPI(action, extra, method, true);
+      } catch (refreshErr) {
+        return { error: 'Sesja wygasła. Wyloguj się i zaloguj ponownie.' };
+      }
+    }
+    return result;
   }
   /* Bezpośredni odczyt z Google Sheets API v4 */
   async function readSheet(range) {
