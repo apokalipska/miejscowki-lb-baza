@@ -3640,15 +3640,16 @@
   }
   function renderFormFields(type) {
     const container = document.getElementById('form-fields-container');
-    formDofollow = 'TAK';
-    formWymagaRejestracji = 'NIE';
-    formTerminPublikacji = 'Natychmiast';
-    formMozliwoscEdycji = 'NIE';
-    formMiejsceNaLink = 'Dedykowane pole';
-    formWymaganaFormaLinku = 'URL';
-    formWymagaAktywacjiMailowej = 'NIE';
-    formSerwisModerowany = 'NIE';
-    formAktywnoscWpisu = 'Bezterminowo';
+    // Domyślnie NIC nie jest zaznaczone — wszystkie te pola są opcjonalne.
+    formDofollow = '';
+    formWymagaRejestracji = '';
+    formTerminPublikacji = '';
+    formMozliwoscEdycji = '';
+    formMiejsceNaLink = '';
+    formWymaganaFormaLinku = '';
+    formWymagaAktywacjiMailowej = '';
+    formSerwisModerowany = '';
+    formAktywnoscWpisu = '';
     const isChecked = formMode === 'checked';
     const isOgKat = (type === 'Ogłoszenia' || type === 'Katalogi');
     // Common fields: URL, Nazwa
@@ -3680,12 +3681,12 @@
         <strong>👤 Konta Social Media</strong> — po dodaniu miejscówki możesz zarządzać kontami klikając przycisk "Konta" w tabeli.
       </div>`;
     }
-    // Dofollow — tylko w trybie "Sprawdzona przeze mnie"
+    // Dofollow — tylko w trybie "Sprawdzona przeze mnie". Nic nie jest zaznaczone domyślnie — pole opcjonalne.
     if (isChecked) {
       html += `<div class="field-row">
-        <div class="field-label">Dofollow <span>*</span></div>
+        <div class="field-label">Dofollow</div>
         <div class="dofollow-toggle">
-          <button class="df-btn active-yes" id="df-tak" onclick="setDofollow('TAK')">✓ TAK — dofollow</button>
+          <button class="df-btn" id="df-tak" onclick="setDofollow('TAK')">✓ TAK — dofollow</button>
           <button class="df-btn" id="df-nie" onclick="setDofollow('NIE')">✗ NIE — nofollow</button>
         </div>
       </div>`;
@@ -3693,7 +3694,7 @@
       html += `<div class="field-row">
         <div class="field-label">Wymaga rejestracji</div>
         <div class="dofollow-toggle">
-          <button class="df-btn active-yes" id="wr-nie" onclick="setWymagaRejestracji('NIE')">✗ NIE</button>
+          <button class="df-btn" id="wr-nie" onclick="setWymagaRejestracji('NIE')">✗ NIE</button>
           <button class="df-btn" id="wr-tak" onclick="setWymagaRejestracji('TAK')">✓ TAK</button>
         </div>
       </div>`;
@@ -3701,7 +3702,7 @@
       html += `<div class="field-row">
         <div class="field-label">Termin publikacji (po ilu dniach)</div>
         <div class="dofollow-toggle">
-          <button class="df-btn active-sel" id="tp-natychmiast" onclick="setTerminPublikacji('Natychmiast')">Natychmiast</button>
+          <button class="df-btn" id="tp-natychmiast" onclick="setTerminPublikacji('Natychmiast')">Natychmiast</button>
           <button class="df-btn" id="tp-do3" onclick="setTerminPublikacji('do 3 dni')">Do 3 dni</button>
           <button class="df-btn" id="tp-3plus" onclick="setTerminPublikacji('3 dni+')">3 dni+</button>
         </div>
@@ -3711,35 +3712,35 @@
         html += `<div class="field-row">
           <div class="field-label">Możliwość edycji wpisu</div>
           <div class="dofollow-toggle">
-            <button class="df-btn active-yes" id="me-nie" onclick="setMozliwoscEdycji('NIE')">✗ NIE</button>
+            <button class="df-btn" id="me-nie" onclick="setMozliwoscEdycji('NIE')">✗ NIE</button>
             <button class="df-btn" id="me-tak" onclick="setMozliwoscEdycji('TAK')">✓ TAK</button>
           </div>
         </div>`;
         html += `<div class="field-row">
           <div class="field-label">Miejsce na link</div>
           <div class="dofollow-toggle">
-            <button class="df-btn active-sel" id="mnl-pole" onclick="setMiejsceNaLink('Dedykowane pole')">Dedykowane pole</button>
+            <button class="df-btn" id="mnl-pole" onclick="setMiejsceNaLink('Dedykowane pole')">Dedykowane pole</button>
             <button class="df-btn" id="mnl-tresc" onclick="setMiejsceNaLink('Treść')">Treść</button>
           </div>
         </div>`;
         html += `<div class="field-row">
           <div class="field-label">Wymagana forma linku</div>
           <div class="dofollow-toggle">
-            <button class="df-btn active-sel" id="wfl-url" onclick="setWymaganaFormaLinku('URL')">URL</button>
+            <button class="df-btn" id="wfl-url" onclick="setWymaganaFormaLinku('URL')">URL</button>
             <button class="df-btn" id="wfl-href" onclick="setWymaganaFormaLinku('Kod href')">Kod href</button>
           </div>
         </div>`;
         html += `<div class="field-row">
           <div class="field-label">Wymaga aktywacji mailowej</div>
           <div class="dofollow-toggle">
-            <button class="df-btn active-yes" id="wam-nie" onclick="setWymagaAktywacjiMailowej('NIE')">✗ NIE</button>
+            <button class="df-btn" id="wam-nie" onclick="setWymagaAktywacjiMailowej('NIE')">✗ NIE</button>
             <button class="df-btn" id="wam-tak" onclick="setWymagaAktywacjiMailowej('TAK')">✓ TAK</button>
           </div>
         </div>`;
         html += `<div class="field-row">
           <div class="field-label">Serwis moderowany</div>
           <div class="dofollow-toggle">
-            <button class="df-btn active-yes" id="sm-nie" onclick="setSerwisModerowany('NIE')">✗ NIE</button>
+            <button class="df-btn" id="sm-nie" onclick="setSerwisModerowany('NIE')">✗ NIE</button>
             <button class="df-btn" id="sm-tak" onclick="setSerwisModerowany('TAK')">✓ TAK</button>
           </div>
         </div>`;
@@ -3749,15 +3750,15 @@
             <button class="df-btn" id="aw-30" onclick="setAktywnoscWpisu('30')">30</button>
             <button class="df-btn" id="aw-60" onclick="setAktywnoscWpisu('60')">60</button>
             <button class="df-btn" id="aw-90" onclick="setAktywnoscWpisu('90')">90</button>
-            <button class="df-btn active-sel" id="aw-bezterm" onclick="setAktywnoscWpisu('Bezterminowo')">Bezterminowo</button>
+            <button class="df-btn" id="aw-bezterm" onclick="setAktywnoscWpisu('Bezterminowo')">Bezterminowo</button>
           </div>
         </div>`;
       }
-      // Link do dodanego linku — obowiązkowe w trybie "Sprawdzona"
+      // Link do dodanego linku — pole opcjonalne (nie wymagane)
       html += `<div class="field-row">
-        <div class="field-label">Link do dodanego linku <span>*</span></div>
+        <div class="field-label">Link do dodanego linku</div>
         <input class="field-input" id="ff-link" type="url" placeholder="https://example.com/artykul-z-linkiem">
-        <div class="field-hint">Link do konkretnej podstrony gdzie dodałeś/aś link. Admin użyje go do weryfikacji.</div>
+        <div class="field-hint">Link do konkretnej podstrony gdzie dodałeś/aś link. Admin użyje go do weryfikacji (opcjonalnie).</div>
       </div>`;
     }
     // Notatki — all types
@@ -3767,53 +3768,54 @@
     </div>`;
     container.innerHTML = html;
   }
+  // Kliknięcie w już zaznaczoną opcję odznacza ją z powrotem (pole zostaje puste/opcjonalne).
   function setDofollow(val) {
-    formDofollow = val;
-    document.getElementById('df-tak').className = 'df-btn' + (val === 'TAK' ? ' active-yes' : '');
-    document.getElementById('df-nie').className = 'df-btn' + (val === 'NIE' ? ' active-no' : '');
+    formDofollow = (formDofollow === val) ? '' : val;
+    document.getElementById('df-tak').className = 'df-btn' + (formDofollow === 'TAK' ? ' active-yes' : '');
+    document.getElementById('df-nie').className = 'df-btn' + (formDofollow === 'NIE' ? ' active-no' : '');
   }
   function setWymagaRejestracji(val) {
-    formWymagaRejestracji = val;
-    document.getElementById('wr-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
-    document.getElementById('wr-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+    formWymagaRejestracji = (formWymagaRejestracji === val) ? '' : val;
+    document.getElementById('wr-tak').className = 'df-btn' + (formWymagaRejestracji === 'TAK' ? ' active-no' : '');
+    document.getElementById('wr-nie').className = 'df-btn' + (formWymagaRejestracji === 'NIE' ? ' active-yes' : '');
   }
   function setTerminPublikacji(val) {
-    formTerminPublikacji = val;
+    formTerminPublikacji = (formTerminPublikacji === val) ? '' : val;
     const map = { 'Natychmiast': 'tp-natychmiast', 'do 3 dni': 'tp-do3', '3 dni+': 'tp-3plus' };
     Object.keys(map).forEach(key => {
-      document.getElementById(map[key]).className = 'df-btn' + (key === val ? ' active-sel' : '');
+      document.getElementById(map[key]).className = 'df-btn' + (key === formTerminPublikacji ? ' active-sel' : '');
     });
   }
   function setMozliwoscEdycji(val) {
-    formMozliwoscEdycji = val;
-    document.getElementById('me-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
-    document.getElementById('me-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+    formMozliwoscEdycji = (formMozliwoscEdycji === val) ? '' : val;
+    document.getElementById('me-tak').className = 'df-btn' + (formMozliwoscEdycji === 'TAK' ? ' active-no' : '');
+    document.getElementById('me-nie').className = 'df-btn' + (formMozliwoscEdycji === 'NIE' ? ' active-yes' : '');
   }
   function setMiejsceNaLink(val) {
-    formMiejsceNaLink = val;
-    document.getElementById('mnl-pole').className = 'df-btn' + (val === 'Dedykowane pole' ? ' active-sel' : '');
-    document.getElementById('mnl-tresc').className = 'df-btn' + (val === 'Treść' ? ' active-sel' : '');
+    formMiejsceNaLink = (formMiejsceNaLink === val) ? '' : val;
+    document.getElementById('mnl-pole').className = 'df-btn' + (formMiejsceNaLink === 'Dedykowane pole' ? ' active-sel' : '');
+    document.getElementById('mnl-tresc').className = 'df-btn' + (formMiejsceNaLink === 'Treść' ? ' active-sel' : '');
   }
   function setWymaganaFormaLinku(val) {
-    formWymaganaFormaLinku = val;
-    document.getElementById('wfl-url').className = 'df-btn' + (val === 'URL' ? ' active-sel' : '');
-    document.getElementById('wfl-href').className = 'df-btn' + (val === 'Kod href' ? ' active-sel' : '');
+    formWymaganaFormaLinku = (formWymaganaFormaLinku === val) ? '' : val;
+    document.getElementById('wfl-url').className = 'df-btn' + (formWymaganaFormaLinku === 'URL' ? ' active-sel' : '');
+    document.getElementById('wfl-href').className = 'df-btn' + (formWymaganaFormaLinku === 'Kod href' ? ' active-sel' : '');
   }
   function setWymagaAktywacjiMailowej(val) {
-    formWymagaAktywacjiMailowej = val;
-    document.getElementById('wam-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
-    document.getElementById('wam-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+    formWymagaAktywacjiMailowej = (formWymagaAktywacjiMailowej === val) ? '' : val;
+    document.getElementById('wam-tak').className = 'df-btn' + (formWymagaAktywacjiMailowej === 'TAK' ? ' active-no' : '');
+    document.getElementById('wam-nie').className = 'df-btn' + (formWymagaAktywacjiMailowej === 'NIE' ? ' active-yes' : '');
   }
   function setSerwisModerowany(val) {
-    formSerwisModerowany = val;
-    document.getElementById('sm-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
-    document.getElementById('sm-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+    formSerwisModerowany = (formSerwisModerowany === val) ? '' : val;
+    document.getElementById('sm-tak').className = 'df-btn' + (formSerwisModerowany === 'TAK' ? ' active-no' : '');
+    document.getElementById('sm-nie').className = 'df-btn' + (formSerwisModerowany === 'NIE' ? ' active-yes' : '');
   }
   function setAktywnoscWpisu(val) {
-    formAktywnoscWpisu = val;
+    formAktywnoscWpisu = (formAktywnoscWpisu === val) ? '' : val;
     const map = { '30': 'aw-30', '60': 'aw-60', '90': 'aw-90', 'Bezterminowo': 'aw-bezterm' };
     Object.keys(map).forEach(key => {
-      document.getElementById(map[key]).className = 'df-btn' + (key === val ? ' active-sel' : '');
+      document.getElementById(map[key]).className = 'df-btn' + (key === formAktywnoscWpisu ? ' active-sel' : '');
     });
   }
   async function submitForm() {
@@ -3826,7 +3828,6 @@
     if (!url) { alert('Podaj URL miejscówki.'); return; }
     if (!formType) { alert('Wybierz typ miejscówki.'); return; }
     if (formType === 'Profile' && !kategoria) { alert('Wybierz kategorię tematyczną.'); return; }
-    if (isChecked && !linkDo) { alert('Podaj link do dodanego linku — to pole jest wymagane przy miejscówce sprawdzonej.'); return; }
     // Check for duplicate URL — in baza and in pending verifications
     const normalizedUrl = url.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase();
     // Check baza_miejsc_lb
@@ -3884,11 +3885,11 @@
     refreshDataInBackground();
   }
   function resetForm() {
-    formType = ''; formMode = 'checked'; formDofollow = 'TAK';
-    formWymagaRejestracji = 'NIE'; formTerminPublikacji = 'Natychmiast';
-    formMozliwoscEdycji = 'NIE'; formMiejsceNaLink = 'Dedykowane pole';
-    formWymaganaFormaLinku = 'URL'; formWymagaAktywacjiMailowej = 'NIE';
-    formSerwisModerowany = 'NIE'; formAktywnoscWpisu = 'Bezterminowo';
+    formType = ''; formMode = 'checked'; formDofollow = '';
+    formWymagaRejestracji = ''; formTerminPublikacji = '';
+    formMozliwoscEdycji = ''; formMiejsceNaLink = '';
+    formWymaganaFormaLinku = ''; formWymagaAktywacjiMailowej = '';
+    formSerwisModerowany = ''; formAktywnoscWpisu = '';
     document.getElementById('form-main').style.display = '';
     document.getElementById('form-success').classList.remove('show');
     document.getElementById('form-fields-card').style.display = 'none';
