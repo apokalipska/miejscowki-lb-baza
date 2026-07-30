@@ -255,6 +255,7 @@
     .df-btn{flex:1;padding:8px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;background:transparent;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text-2);text-align:center;transition:all var(--t)}
     .df-btn.active-yes{border-color:var(--success);background:rgba(16,185,129,0.08);color:#059669}
     .df-btn.active-no{border-color:var(--danger);background:rgba(239,68,68,0.08);color:#DC2626}
+    .df-btn.active-sel{border-color:var(--accent);background:rgba(235,59,84,0.08);color:var(--accent)}
     /* form success */
     .form-success{text-align:center;padding:40px 20px;display:none}
     .form-success.show{display:block}
@@ -2144,7 +2145,8 @@
       type: row[3]||'', kategoria: row[4]||'',
       da: row[5]||'', dr: row[6]||'', dofollow: row[7]||'',
       status: row[8]||'', code: parseInt(row[9])||0,
-      lastCheck: row[10]||'', addedBy: row[11]||'', notes: row[13]||'', linkDo: row[14]||''
+      lastCheck: row[10]||'', addedBy: row[11]||'', notes: row[13]||'', linkDo: row[14]||'',
+      wymagaRejestracji: row[15]||'', terminPublikacji: row[16]||''
     };
   }
   function calcStats(placeRows, verifRows, types) {
@@ -2477,6 +2479,10 @@
               <a href="${escHtml(item.url)}" target="_blank" rel="noopener" title="${escHtml(item.url)}">${escHtml(truncate(item.url, 44))}</a>
               ${item.notes ? `<div style="font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px" title="${escAttr(item.notes)}">📝 ${escHtml(item.notes)}</div>` : ''}
               ${item.linkDo ? `<div style="font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px"><a href="${escHtml(item.linkDo)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none" title="${escAttr(item.linkDo)}">🔗 Przykładowy wpis</a></div>` : ''}
+              ${(item.wymagaRejestracji === 'TAK' || (item.terminPublikacji && item.terminPublikacji !== 'Natychmiast')) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+                ${item.wymagaRejestracji === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(245,158,11,0.12);color:#D97706">🔒 Rejestracja</span>` : ''}
+                ${(item.terminPublikacji && item.terminPublikacji !== 'Natychmiast') ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">⏱ ${escHtml(item.terminPublikacji)}</span>` : ''}
+              </div>` : ''}
             </div>
           </div>
         </td>
@@ -3547,6 +3553,8 @@
   let formMode     = 'checked';
   let formType     = '';
   let formDofollow = 'TAK';
+  let formWymagaRejestracji = 'NIE';
+  let formTerminPublikacji  = 'Natychmiast';
   let allKategorie = [];
   let allTypes     = [];
   async function initForm() {
@@ -3621,6 +3629,8 @@
   function renderFormFields(type) {
     const container = document.getElementById('form-fields-container');
     formDofollow = 'TAK';
+    formWymagaRejestracji = 'NIE';
+    formTerminPublikacji = 'Natychmiast';
     const isChecked = formMode === 'checked';
     // Common fields: URL, Nazwa
     let html = `
@@ -3660,6 +3670,23 @@
           <button class="df-btn" id="df-nie" onclick="setDofollow('NIE')">✗ NIE — nofollow</button>
         </div>
       </div>`;
+      // Wymaga rejestracji — ten sam styl co Dofollow
+      html += `<div class="field-row">
+        <div class="field-label">Wymaga rejestracji</div>
+        <div class="dofollow-toggle">
+          <button class="df-btn active-yes" id="wr-nie" onclick="setWymagaRejestracji('NIE')">✗ NIE</button>
+          <button class="df-btn" id="wr-tak" onclick="setWymagaRejestracji('TAK')">✓ TAK</button>
+        </div>
+      </div>`;
+      // Termin publikacji — 3-opcjowy toggle w tym samym stylu
+      html += `<div class="field-row">
+        <div class="field-label">Termin publikacji (po ilu dniach)</div>
+        <div class="dofollow-toggle">
+          <button class="df-btn active-sel" id="tp-natychmiast" onclick="setTerminPublikacji('Natychmiast')">Natychmiast</button>
+          <button class="df-btn" id="tp-do3" onclick="setTerminPublikacji('do 3 dni')">Do 3 dni</button>
+          <button class="df-btn" id="tp-3plus" onclick="setTerminPublikacji('3 dni+')">3 dni+</button>
+        </div>
+      </div>`;
       // Link do dodanego linku — obowiązkowe w trybie "Sprawdzona"
       html += `<div class="field-row">
         <div class="field-label">Link do dodanego linku <span>*</span></div>
@@ -3678,6 +3705,18 @@
     formDofollow = val;
     document.getElementById('df-tak').className = 'df-btn' + (val === 'TAK' ? ' active-yes' : '');
     document.getElementById('df-nie').className = 'df-btn' + (val === 'NIE' ? ' active-no' : '');
+  }
+  function setWymagaRejestracji(val) {
+    formWymagaRejestracji = val;
+    document.getElementById('wr-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
+    document.getElementById('wr-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+  }
+  function setTerminPublikacji(val) {
+    formTerminPublikacji = val;
+    const map = { 'Natychmiast': 'tp-natychmiast', 'do 3 dni': 'tp-do3', '3 dni+': 'tp-3plus' };
+    Object.keys(map).forEach(key => {
+      document.getElementById(map[key]).className = 'df-btn' + (key === val ? ' active-sel' : '');
+    });
   }
   async function submitForm() {
     const url      = document.getElementById('ff-url')?.value.trim();
@@ -3721,6 +3760,8 @@
       url, name, type: formType, kategoria,
       dofollow: isChecked ? formDofollow : '',
       notes, linkDo,
+      wymagaRejestracji: isChecked ? formWymagaRejestracji : '',
+      terminPublikacji: isChecked ? formTerminPublikacji : '',
       checked: isChecked
     }, 'POST');
     btn.disabled = false; btn.textContent = 'Wyślij do weryfikacji';
@@ -3739,6 +3780,7 @@
   }
   function resetForm() {
     formType = ''; formMode = 'checked'; formDofollow = 'TAK';
+    formWymagaRejestracji = 'NIE'; formTerminPublikacji = 'Natychmiast';
     document.getElementById('form-main').style.display = '';
     document.getElementById('form-success').classList.remove('show');
     document.getElementById('form-fields-card').style.display = 'none';
@@ -3862,6 +3904,8 @@
         <div class="vd-item"><div class="vd-label">Typ</div><div class="vd-val">${escHtml(item.type||'—')}</div></div>
         <div class="vd-item"><div class="vd-label">Kategoria</div><div class="vd-val">${escHtml(item.kategoria||'—')}</div></div>
         <div class="vd-item"><div class="vd-label">Dofollow</div><div class="vd-val">${escHtml(item.dofollow||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Wymaga rejestracji</div><div class="vd-val">${escHtml(item.wymagaRejestracji||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Termin publikacji</div><div class="vd-val">${escHtml(item.terminPublikacji||'—')}</div></div>
       </div>
       ${item.linkDo ? `<div style="font-size:12.5px;color:var(--text-2);margin-bottom:10px;line-height:1.5">
         <strong>🔗 Link do dodanego linku:</strong>
@@ -3937,6 +3981,21 @@
           </select>
         </div>
         <div class="field-row">
+          <div class="field-label">Wymaga rejestracji</div>
+          <select class="field-select-native" id="fill-wr">
+            <option value="NIE" ${item.wymagaRejestracji!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${item.wymagaRejestracji==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Termin publikacji (po ilu dniach)</div>
+          <select class="field-select-native" id="fill-tp">
+            <option value="Natychmiast" ${(!item.terminPublikacji||item.terminPublikacji==='Natychmiast')?'selected':''}>Natychmiast</option>
+            <option value="do 3 dni" ${item.terminPublikacji==='do 3 dni'?'selected':''}>Do 3 dni</option>
+            <option value="3 dni+" ${item.terminPublikacji==='3 dni+'?'selected':''}>3 dni+</option>
+          </select>
+        </div>
+        <div class="field-row">
           <div class="field-label">Notatki</div>
           <textarea class="field-textarea" id="fill-notes" placeholder="Instrukcja, uwagi…">${escHtml(item.notes||'')}</textarea>
         </div>
@@ -3952,8 +4011,10 @@
   async function submitFill(id, type) {
     const kat   = document.getElementById('fill-kat')?.value || '';
     const dof   = document.getElementById('fill-dof')?.value || 'TAK';
+    const wr    = document.getElementById('fill-wr')?.value || 'NIE';
+    const tp    = document.getElementById('fill-tp')?.value || 'Natychmiast';
     const notes = document.getElementById('fill-notes')?.value || '';
-    const data  = await callAPI('updateVerif', { id, kategoria: kat, dofollow: dof, notes }, 'POST');
+    const data  = await callAPI('updateVerif', { id, kategoria: kat, dofollow: dof, wymagaRejestracji: wr, terminPublikacji: tp, notes }, 'POST');
     if (data?.error) { alert('Błąd: ' + data.error); return; }
     document.getElementById('fill-modal')?.remove();
     loadVerification();
@@ -4277,6 +4338,21 @@
           </select>
         </div>
         <div class="field-row">
+          <div class="field-label">Wymaga rejestracji</div>
+          <select class="field-select-native" id="qe-wr">
+            <option value="NIE" ${String(item[15]).toUpperCase()!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${String(item[15]).toUpperCase()==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Termin publikacji (po ilu dniach)</div>
+          <select class="field-select-native" id="qe-tp">
+            <option value="Natychmiast" ${(!item[16]||item[16]==='Natychmiast')?'selected':''}>Natychmiast</option>
+            <option value="do 3 dni" ${item[16]==='do 3 dni'?'selected':''}>Do 3 dni</option>
+            <option value="3 dni+" ${item[16]==='3 dni+'?'selected':''}>3 dni+</option>
+          </select>
+        </div>
+        <div class="field-row">
           <div class="field-label">Notatki</div>
           <textarea class="field-textarea" id="qe-notes" rows="3">${escHtml(item[13]||'')}</textarea>
         </div>
@@ -4297,10 +4373,12 @@
     const name   = document.getElementById('qe-name')?.value.trim();
     const url    = document.getElementById('qe-url')?.value.trim();
     const dof    = document.getElementById('qe-dof')?.value;
+    const wr     = document.getElementById('qe-wr')?.value;
+    const tp     = document.getElementById('qe-tp')?.value;
     const notes  = document.getElementById('qe-notes')?.value.trim();
     const linkDo = document.getElementById('qe-link')?.value.trim() || '';
     if (!url) { alert('URL jest wymagany.'); return; }
-    const data = await callAPI('editPlace', { id, name, url, dofollow: dof, notes, linkDo }, 'POST');
+    const data = await callAPI('editPlace', { id, name, url, dofollow: dof, notes, linkDo, wymagaRejestracji: wr, terminPublikacji: tp }, 'POST');
     if (!data || data.error) { alert('Błąd: ' + (data?.error||'Nieznany błąd')); return; }
     document.getElementById('qedit-modal').remove();
     showToast('✅ Zmiany zapisane', 'success');
