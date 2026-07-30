@@ -2064,7 +2064,7 @@
   let searchTimer  = null;
   let allPlacesRaw = []; // all rows from sheet — filtering done client-side (instant)
   let allVerifRaw  = []; // verifikation rows — for duplicate checking
-  const DATA_KEY   = 'sld_data_v3';
+  const DATA_KEY   = 'sld_data_v4';
   const DATA_TTL   = 5 * 60 * 1000; // 5 min stale-while-revalidate
   /* Apps Script — tylko do ZAPISU (POST) + akcje wymagające uprawnień serwera.
      Wersja standalone: SPREADSHEET_ID jest zawsze dołączane do zapytania —
@@ -2493,7 +2493,7 @@
             <div style="min-width:0">
               ${item.name ? `<div class="td-name">${escHtml(item.name)}</div>` : ''}
               <a href="${escHtml(item.url)}" target="_blank" rel="noopener" title="${escHtml(item.url)}">${escHtml(truncate(item.url, 44))}</a>
-              ${item.notes ? `<div style="font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px" title="${escAttr(item.notes)}">📝 ${escHtml(item.notes)}</div>` : ''}
+              ${item.notes ? `<div style="font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4;white-space:normal;word-break:break-word;max-width:420px">📝 ${escHtml(item.notes)}</div>` : ''}
               ${item.linkDo ? `<div style="font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px"><a href="${escHtml(item.linkDo)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none" title="${escAttr(item.linkDo)}">🔗 Przykładowy wpis</a></div>` : ''}
               ${(item.wymagaRejestracji === 'TAK' || (item.terminPublikacji && item.terminPublikacji !== 'Natychmiast') || item.wymagaAktywacjiMailowej === 'TAK' || item.serwisModerowany === 'TAK' || item.mozliwoscEdycji === 'TAK' || (item.aktywnoscWpisu && item.aktywnoscWpisu !== 'Bezterminowo')) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
                 ${item.wymagaRejestracji === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(245,158,11,0.12);color:#D97706">🔒 Rejestracja</span>` : ''}
