@@ -2495,15 +2495,15 @@
               <a href="${escHtml(item.url)}" target="_blank" rel="noopener" title="${escHtml(item.url)}">${escHtml(truncate(item.url, 44))}</a>
               ${item.notes ? `<div style="font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4;white-space:normal;word-break:break-word;max-width:100%">📝 ${escHtml(item.notes)}</div>` : ''}
               ${item.linkDo ? `<div style="font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px"><a href="${escHtml(item.linkDo)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none" title="${escAttr(item.linkDo)}">🔗 Przykładowy wpis</a></div>` : ''}
-              ${(item.wymagaRejestracji === 'TAK' || (item.terminPublikacji && item.terminPublikacji !== 'Natychmiast') || item.wymagaAktywacjiMailowej === 'TAK' || item.serwisModerowany === 'TAK' || item.mozliwoscEdycji === 'TAK' || item.miejsceNaLink || item.wymaganaFormaLinku || (item.aktywnoscWpisu && item.aktywnoscWpisu !== 'Bezterminowo')) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+              ${(item.wymagaRejestracji === 'TAK' || item.terminPublikacji || item.wymagaAktywacjiMailowej === 'TAK' || item.serwisModerowany === 'TAK' || item.mozliwoscEdycji === 'TAK' || item.miejsceNaLink || item.wymaganaFormaLinku || item.aktywnoscWpisu) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
                 ${item.wymagaRejestracji === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(245,158,11,0.12);color:#D97706">🔒 Rejestracja</span>` : ''}
-                ${(item.terminPublikacji && item.terminPublikacji !== 'Natychmiast') ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">⏱ ${escHtml(item.terminPublikacji)}</span>` : ''}
+                ${item.terminPublikacji ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">⏱ ${escHtml(item.terminPublikacji)}</span>` : ''}
                 ${item.wymagaAktywacjiMailowej === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(96,165,250,0.12);color:#1D4ED8">✉️ Aktywacja mail</span>` : ''}
                 ${item.serwisModerowany === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(124,58,237,0.12);color:#7C3AED">👁 Moderowany</span>` : ''}
                 ${item.mozliwoscEdycji === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(16,185,129,0.12);color:#059669">✎ Edytowalny</span>` : ''}
                 ${item.miejsceNaLink ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">📍 ${escHtml(item.miejsceNaLink)}</span>` : ''}
                 ${item.wymaganaFormaLinku ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">🔗 ${escHtml(item.wymaganaFormaLinku)}</span>` : ''}
-                ${(item.aktywnoscWpisu && item.aktywnoscWpisu !== 'Bezterminowo') ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">📅 ${escHtml(item.aktywnoscWpisu)} dni</span>` : ''}
+                ${item.aktywnoscWpisu ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">📅 ${escHtml(item.aktywnoscWpisu)}${/^\d+$/.test(item.aktywnoscWpisu) ? ' dni' : ''}</span>` : ''}
               </div>` : ''}
             </div>
           </div>
@@ -3768,6 +3768,7 @@
             <button class="df-btn" id="aw-90" onclick="setAktywnoscWpisu('90')">90</button>
             <button class="df-btn" id="aw-bezterm" onclick="setAktywnoscWpisu('Bezterminowo')">Bezterminowo</button>
           </div>
+          <input class="field-input" id="ff-aw-custom" type="text" placeholder="lub wpisz własną wartość…" style="margin-top:6px" oninput="setAktywnoscWpisuCustom(this.value)">
         </div>`;
       }
       // Link do dodanego linku — pole opcjonalne (nie wymagane)
@@ -3829,9 +3830,19 @@
   }
   function setAktywnoscWpisu(val) {
     formAktywnoscWpisu = (formAktywnoscWpisu === val) ? '' : val;
+    const customInput = document.getElementById('ff-aw-custom');
+    if (customInput) customInput.value = '';
     const map = { '30': 'aw-30', '60': 'aw-60', '90': 'aw-90', 'Bezterminowo': 'aw-bezterm' };
     Object.keys(map).forEach(key => {
       document.getElementById(map[key]).className = 'df-btn' + (key === formAktywnoscWpisu ? ' active-sel' : '');
+    });
+  }
+  // Własna wartość nadpisuje toggle (np. "45", "6 miesięcy") — wpisanie czegokolwiek odznacza przyciski.
+  function setAktywnoscWpisuCustom(val) {
+    formAktywnoscWpisu = val.trim();
+    ['aw-30','aw-60','aw-90','aw-bezterm'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.className = 'df-btn';
     });
   }
   async function submitForm() {
