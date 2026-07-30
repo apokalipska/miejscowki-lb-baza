@@ -2071,7 +2071,7 @@
      Twój Code.gs może je odczytać (e.parameter.spreadsheetId / body.spreadsheetId),
      ale nie musi — jeśli wolisz, Code.gs może zamiast tego trzymać ID arkusza
      jako Script Property i wtedy po prostu je zignorować. Zobacz Code.gs. */
-  async function callAPI(action, extra = {}, method = 'GET', _isRetry = false) {
+  async function callAPI(action, extra = {}, method = 'GET', _isRetry = false, timeoutMs = 35000) {
     if (!currentUser?.access_token) return null;
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       console.warn('[LB] APPS_SCRIPT_URL nie jest ustawiony — uzupełnij CONFIG (zobacz SETUP.md).');
@@ -2081,7 +2081,7 @@
     let result;
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 35000);
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
       let r;
       if (method === 'POST') {
         r = await fetch(APPS_SCRIPT_URL, {
@@ -2108,7 +2108,7 @@
     if (isAuthError && !_isRetry) {
       try {
         await refreshToken();
-        return await callAPI(action, extra, method, true);
+        return await callAPI(action, extra, method, true, timeoutMs);
       } catch (refreshErr) {
         return { error: 'Sesja wygasła. Wyloguj się i zaloguj ponownie.' };
       }
@@ -4447,10 +4447,10 @@
     checkInProgress = true;
     const btn = document.getElementById('mon-check-sel-btn');
     if (btn) { btn.disabled=true; btn.textContent='Sprawdzanie…'; }
-    const data = await callAPI('checkSelected', { ids: [...monSelected] }, 'POST');
+    const data = await callAPI('checkSelected', { ids: [...monSelected] }, 'POST', false, 320000);
     checkInProgress = false;
     if (btn) { btn.disabled=false; btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Sprawdź zaznaczone`; }
-    if (!data || data.error) { alert('Błąd: ' + (data?.error||'Nieznany błąd')); return; }
+    if (!data || data.error) { alert(data?.error === 'timeout' ? '⏱ Sprawdzanie trwa dłużej niż zwykle. Apps Script mógł mimo to dokończyć pracę w tle — odśwież stronę za chwilę i sprawdź statusy.' : 'Błąd: ' + (data?.error||'Nieznany błąd')); return; }
     monSelected.clear();
     await refreshDataInBackground();
     renderMonitoring();
@@ -4463,11 +4463,11 @@
     const btn = document.getElementById('mon-check-btn');
     btn.disabled = true;
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Sprawdzanie…`;
-    const data = await callAPI('checkDomains', {}, 'POST');
+    const data = await callAPI('checkDomains', {}, 'POST', false, 320000);
     checkInProgress = false;
     btn.disabled = false;
     btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Sprawdź teraz`;
-    if (!data || data.error) { alert('Błąd: ' + (data?.error||'Sprawdzanie nie powiodło się.')); return; }
+    if (!data || data.error) { alert(data?.error === 'timeout' ? '⏱ Sprawdzanie trwa dłużej niż zwykle (dużo domen = kilka minut). Apps Script mógł mimo to dokończyć pracę w tle — odśwież stronę za chwilę i sprawdź statusy.' : 'Błąd: ' + (data?.error||'Sprawdzanie nie powiodło się.')); return; }
     await refreshDataInBackground();
     renderMonitoring();
     alert(`✅ Sprawdzono ${data.checked||0} domen.`);
