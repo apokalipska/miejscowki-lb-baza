@@ -1946,7 +1946,7 @@
       } else {
         // Fetch fresh
         const [placeValues, verifValues, cfgValues]=await Promise.all([
-          readSheet('baza_miejsc_lb!A:O'),
+          readSheet('baza_miejsc_lb!A:X'),
           readSheet('weryfikacja!A:I'),
           readSheet('konfiguracja!A:B')
         ]);
@@ -1997,7 +1997,7 @@
   async function refreshDataInBackground() {
     try {
       const [placeValues, verifValues, cfgValues]=await Promise.all([
-        readSheet('baza_miejsc_lb!A:O'),
+        readSheet('baza_miejsc_lb!A:X'),
         readSheet('weryfikacja!A:I'),
         readSheet('konfiguracja!A:B')
       ]);
@@ -2161,7 +2161,8 @@
       lastCheck: row[10]||'', addedBy: row[11]||'', notes: row[13]||'', linkDo: row[14]||'',
       wymagaRejestracji: row[15]||'', terminPublikacji: row[16]||'',
       mozliwoscEdycji: row[17]||'', miejsceNaLink: row[18]||'', wymaganaFormaLinku: row[19]||'',
-      wymagaAktywacjiMailowej: row[20]||'', serwisModerowany: row[21]||'', aktywnoscWpisu: row[22]||''
+      wymagaAktywacjiMailowej: row[20]||'', serwisModerowany: row[21]||'', aktywnoscWpisu: row[22]||'',
+      dataDodania: row[23]||''
     };
   }
   function calcStats(placeRows, verifRows, types) {
@@ -2210,7 +2211,7 @@
     // ── 3. Fetch from Sheets API ──────────────────────────
     try {
       const [placeValues, verifValues, cfgValues] = await Promise.all([
-        readSheet('baza_miejsc_lb!A:O'),
+        readSheet('baza_miejsc_lb!A:X'),
         readSheet('weryfikacja!A:I'),
         readSheet('konfiguracja!A:B')
       ]);
@@ -2508,7 +2509,7 @@
         <td><span class="${typePillClass(item.type)}">${typeIcon(item.type)} ${escHtml(item.type || '—')}</span> ${accBtn}</td>
         <td>${badge}</td>
         <td class="td-num" style="text-align:center">${dofCell}</td>
-        <td class="td-date">${item.lastCheck || '—'}</td>
+        <td class="td-date">${escHtml(String(item.dataDodania || item.lastCheck || '').slice(0,10) || '—')}</td>
         <td style="white-space:nowrap">
           <div style="display:flex;align-items:center;gap:6px">
             ${canEditUser ? `
@@ -4648,7 +4649,7 @@
     const toast = showToast('⟳ Synchronizacja z arkuszem…', 'info', 30000);
     try {
       const [placeValues, verifValues, cfgValues] = await Promise.all([
-        readSheetWithRetry('baza_miejsc_lb!A:O'),
+        readSheetWithRetry('baza_miejsc_lb!A:X'),
         readSheetWithRetry('weryfikacja!A:I'),
         readSheetWithRetry('konfiguracja!A:B')
       ]);
