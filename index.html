@@ -2146,7 +2146,9 @@
       da: row[5]||'', dr: row[6]||'', dofollow: row[7]||'',
       status: row[8]||'', code: parseInt(row[9])||0,
       lastCheck: row[10]||'', addedBy: row[11]||'', notes: row[13]||'', linkDo: row[14]||'',
-      wymagaRejestracji: row[15]||'', terminPublikacji: row[16]||''
+      wymagaRejestracji: row[15]||'', terminPublikacji: row[16]||'',
+      mozliwoscEdycji: row[17]||'', miejsceNaLink: row[18]||'', wymaganaFormaLinku: row[19]||'',
+      wymagaAktywacjiMailowej: row[20]||'', serwisModerowany: row[21]||'', aktywnoscWpisu: row[22]||''
     };
   }
   function calcStats(placeRows, verifRows, types) {
@@ -2479,9 +2481,13 @@
               <a href="${escHtml(item.url)}" target="_blank" rel="noopener" title="${escHtml(item.url)}">${escHtml(truncate(item.url, 44))}</a>
               ${item.notes ? `<div style="font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px" title="${escAttr(item.notes)}">📝 ${escHtml(item.notes)}</div>` : ''}
               ${item.linkDo ? `<div style="font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px"><a href="${escHtml(item.linkDo)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none" title="${escAttr(item.linkDo)}">🔗 Przykładowy wpis</a></div>` : ''}
-              ${(item.wymagaRejestracji === 'TAK' || (item.terminPublikacji && item.terminPublikacji !== 'Natychmiast')) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+              ${(item.wymagaRejestracji === 'TAK' || (item.terminPublikacji && item.terminPublikacji !== 'Natychmiast') || item.wymagaAktywacjiMailowej === 'TAK' || item.serwisModerowany === 'TAK' || item.mozliwoscEdycji === 'TAK' || (item.aktywnoscWpisu && item.aktywnoscWpisu !== 'Bezterminowo')) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
                 ${item.wymagaRejestracji === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(245,158,11,0.12);color:#D97706">🔒 Rejestracja</span>` : ''}
                 ${(item.terminPublikacji && item.terminPublikacji !== 'Natychmiast') ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">⏱ ${escHtml(item.terminPublikacji)}</span>` : ''}
+                ${item.wymagaAktywacjiMailowej === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(96,165,250,0.12);color:#1D4ED8">✉️ Aktywacja mail</span>` : ''}
+                ${item.serwisModerowany === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(124,58,237,0.12);color:#7C3AED">👁 Moderowany</span>` : ''}
+                ${item.mozliwoscEdycji === 'TAK' ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:rgba(16,185,129,0.12);color:#059669">✎ Edytowalny</span>` : ''}
+                ${(item.aktywnoscWpisu && item.aktywnoscWpisu !== 'Bezterminowo') ? `<span style="font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--bg-input);color:var(--text-3)">📅 ${escHtml(item.aktywnoscWpisu)} dni</span>` : ''}
               </div>` : ''}
             </div>
           </div>
@@ -3555,6 +3561,12 @@
   let formDofollow = 'TAK';
   let formWymagaRejestracji = 'NIE';
   let formTerminPublikacji  = 'Natychmiast';
+  let formMozliwoscEdycji   = 'NIE';
+  let formMiejsceNaLink     = 'Dedykowane pole';
+  let formWymaganaFormaLinku = 'URL';
+  let formWymagaAktywacjiMailowej = 'NIE';
+  let formSerwisModerowany  = 'NIE';
+  let formAktywnoscWpisu    = 'Bezterminowo';
   let allKategorie = [];
   let allTypes     = [];
   async function initForm() {
@@ -3631,7 +3643,14 @@
     formDofollow = 'TAK';
     formWymagaRejestracji = 'NIE';
     formTerminPublikacji = 'Natychmiast';
+    formMozliwoscEdycji = 'NIE';
+    formMiejsceNaLink = 'Dedykowane pole';
+    formWymaganaFormaLinku = 'URL';
+    formWymagaAktywacjiMailowej = 'NIE';
+    formSerwisModerowany = 'NIE';
+    formAktywnoscWpisu = 'Bezterminowo';
     const isChecked = formMode === 'checked';
+    const isOgKat = (type === 'Ogłoszenia' || type === 'Katalogi');
     // Common fields: URL, Nazwa
     let html = `
       <div class="field-row">
@@ -3687,6 +3706,53 @@
           <button class="df-btn" id="tp-3plus" onclick="setTerminPublikacji('3 dni+')">3 dni+</button>
         </div>
       </div>`;
+      // Pola tylko dla Ogłoszeń i Katalogów
+      if (isOgKat) {
+        html += `<div class="field-row">
+          <div class="field-label">Możliwość edycji wpisu</div>
+          <div class="dofollow-toggle">
+            <button class="df-btn active-yes" id="me-nie" onclick="setMozliwoscEdycji('NIE')">✗ NIE</button>
+            <button class="df-btn" id="me-tak" onclick="setMozliwoscEdycji('TAK')">✓ TAK</button>
+          </div>
+        </div>`;
+        html += `<div class="field-row">
+          <div class="field-label">Miejsce na link</div>
+          <div class="dofollow-toggle">
+            <button class="df-btn active-sel" id="mnl-pole" onclick="setMiejsceNaLink('Dedykowane pole')">Dedykowane pole</button>
+            <button class="df-btn" id="mnl-tresc" onclick="setMiejsceNaLink('Treść')">Treść</button>
+          </div>
+        </div>`;
+        html += `<div class="field-row">
+          <div class="field-label">Wymagana forma linku</div>
+          <div class="dofollow-toggle">
+            <button class="df-btn active-sel" id="wfl-url" onclick="setWymaganaFormaLinku('URL')">URL</button>
+            <button class="df-btn" id="wfl-href" onclick="setWymaganaFormaLinku('Kod href')">Kod href</button>
+          </div>
+        </div>`;
+        html += `<div class="field-row">
+          <div class="field-label">Wymaga aktywacji mailowej</div>
+          <div class="dofollow-toggle">
+            <button class="df-btn active-yes" id="wam-nie" onclick="setWymagaAktywacjiMailowej('NIE')">✗ NIE</button>
+            <button class="df-btn" id="wam-tak" onclick="setWymagaAktywacjiMailowej('TAK')">✓ TAK</button>
+          </div>
+        </div>`;
+        html += `<div class="field-row">
+          <div class="field-label">Serwis moderowany</div>
+          <div class="dofollow-toggle">
+            <button class="df-btn active-yes" id="sm-nie" onclick="setSerwisModerowany('NIE')">✗ NIE</button>
+            <button class="df-btn" id="sm-tak" onclick="setSerwisModerowany('TAK')">✓ TAK</button>
+          </div>
+        </div>`;
+        html += `<div class="field-row">
+          <div class="field-label">Aktywność wpisu (dni)</div>
+          <div class="dofollow-toggle">
+            <button class="df-btn" id="aw-30" onclick="setAktywnoscWpisu('30')">30</button>
+            <button class="df-btn" id="aw-60" onclick="setAktywnoscWpisu('60')">60</button>
+            <button class="df-btn" id="aw-90" onclick="setAktywnoscWpisu('90')">90</button>
+            <button class="df-btn active-sel" id="aw-bezterm" onclick="setAktywnoscWpisu('Bezterminowo')">Bezterminowo</button>
+          </div>
+        </div>`;
+      }
       // Link do dodanego linku — obowiązkowe w trybie "Sprawdzona"
       html += `<div class="field-row">
         <div class="field-label">Link do dodanego linku <span>*</span></div>
@@ -3714,6 +3780,38 @@
   function setTerminPublikacji(val) {
     formTerminPublikacji = val;
     const map = { 'Natychmiast': 'tp-natychmiast', 'do 3 dni': 'tp-do3', '3 dni+': 'tp-3plus' };
+    Object.keys(map).forEach(key => {
+      document.getElementById(map[key]).className = 'df-btn' + (key === val ? ' active-sel' : '');
+    });
+  }
+  function setMozliwoscEdycji(val) {
+    formMozliwoscEdycji = val;
+    document.getElementById('me-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
+    document.getElementById('me-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+  }
+  function setMiejsceNaLink(val) {
+    formMiejsceNaLink = val;
+    document.getElementById('mnl-pole').className = 'df-btn' + (val === 'Dedykowane pole' ? ' active-sel' : '');
+    document.getElementById('mnl-tresc').className = 'df-btn' + (val === 'Treść' ? ' active-sel' : '');
+  }
+  function setWymaganaFormaLinku(val) {
+    formWymaganaFormaLinku = val;
+    document.getElementById('wfl-url').className = 'df-btn' + (val === 'URL' ? ' active-sel' : '');
+    document.getElementById('wfl-href').className = 'df-btn' + (val === 'Kod href' ? ' active-sel' : '');
+  }
+  function setWymagaAktywacjiMailowej(val) {
+    formWymagaAktywacjiMailowej = val;
+    document.getElementById('wam-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
+    document.getElementById('wam-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+  }
+  function setSerwisModerowany(val) {
+    formSerwisModerowany = val;
+    document.getElementById('sm-tak').className = 'df-btn' + (val === 'TAK' ? ' active-no' : '');
+    document.getElementById('sm-nie').className = 'df-btn' + (val === 'NIE' ? ' active-yes' : '');
+  }
+  function setAktywnoscWpisu(val) {
+    formAktywnoscWpisu = val;
+    const map = { '30': 'aw-30', '60': 'aw-60', '90': 'aw-90', 'Bezterminowo': 'aw-bezterm' };
     Object.keys(map).forEach(key => {
       document.getElementById(map[key]).className = 'df-btn' + (key === val ? ' active-sel' : '');
     });
@@ -3756,12 +3854,19 @@
     }
     const btn = document.getElementById('form-submit-btn');
     btn.disabled = true; btn.textContent = 'Wysyłanie…';
+    const isOgKatSubmit = (formType === 'Ogłoszenia' || formType === 'Katalogi');
     const data = await callAPI('addPlace', {
       url, name, type: formType, kategoria,
       dofollow: isChecked ? formDofollow : '',
       notes, linkDo,
       wymagaRejestracji: isChecked ? formWymagaRejestracji : '',
       terminPublikacji: isChecked ? formTerminPublikacji : '',
+      mozliwoscEdycji: (isChecked && isOgKatSubmit) ? formMozliwoscEdycji : '',
+      miejsceNaLink: (isChecked && isOgKatSubmit) ? formMiejsceNaLink : '',
+      wymaganaFormaLinku: (isChecked && isOgKatSubmit) ? formWymaganaFormaLinku : '',
+      wymagaAktywacjiMailowej: (isChecked && isOgKatSubmit) ? formWymagaAktywacjiMailowej : '',
+      serwisModerowany: (isChecked && isOgKatSubmit) ? formSerwisModerowany : '',
+      aktywnoscWpisu: (isChecked && isOgKatSubmit) ? formAktywnoscWpisu : '',
       checked: isChecked
     }, 'POST');
     btn.disabled = false; btn.textContent = 'Wyślij do weryfikacji';
@@ -3781,6 +3886,9 @@
   function resetForm() {
     formType = ''; formMode = 'checked'; formDofollow = 'TAK';
     formWymagaRejestracji = 'NIE'; formTerminPublikacji = 'Natychmiast';
+    formMozliwoscEdycji = 'NIE'; formMiejsceNaLink = 'Dedykowane pole';
+    formWymaganaFormaLinku = 'URL'; formWymagaAktywacjiMailowej = 'NIE';
+    formSerwisModerowany = 'NIE'; formAktywnoscWpisu = 'Bezterminowo';
     document.getElementById('form-main').style.display = '';
     document.getElementById('form-success').classList.remove('show');
     document.getElementById('form-fields-card').style.display = 'none';
@@ -3899,6 +4007,7 @@
       odrzucona:           ['vs-rejected','Odrzucona'],
     };
     const [cls, label] = statusMap[item.status] || ['vs-pending', item.status];
+    const isOgKatItem = (item.type === 'Ogłoszenia' || item.type === 'Katalogi');
     const details = `
       <div class="verif-details">
         <div class="vd-item"><div class="vd-label">Typ</div><div class="vd-val">${escHtml(item.type||'—')}</div></div>
@@ -3906,6 +4015,13 @@
         <div class="vd-item"><div class="vd-label">Dofollow</div><div class="vd-val">${escHtml(item.dofollow||'—')}</div></div>
         <div class="vd-item"><div class="vd-label">Wymaga rejestracji</div><div class="vd-val">${escHtml(item.wymagaRejestracji||'—')}</div></div>
         <div class="vd-item"><div class="vd-label">Termin publikacji</div><div class="vd-val">${escHtml(item.terminPublikacji||'—')}</div></div>
+        ${isOgKatItem ? `
+        <div class="vd-item"><div class="vd-label">Możliwość edycji</div><div class="vd-val">${escHtml(item.mozliwoscEdycji||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Miejsce na link</div><div class="vd-val">${escHtml(item.miejsceNaLink||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Wymagana forma linku</div><div class="vd-val">${escHtml(item.wymaganaFormaLinku||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Aktywacja mailowa</div><div class="vd-val">${escHtml(item.wymagaAktywacjiMailowej||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Serwis moderowany</div><div class="vd-val">${escHtml(item.serwisModerowany||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Aktywność wpisu</div><div class="vd-val">${escHtml(item.aktywnoscWpisu||'—')}</div></div>` : ''}
       </div>
       ${item.linkDo ? `<div style="font-size:12.5px;color:var(--text-2);margin-bottom:10px;line-height:1.5">
         <strong>🔗 Link do dodanego linku:</strong>
@@ -3995,6 +4111,51 @@
             <option value="3 dni+" ${item.terminPublikacji==='3 dni+'?'selected':''}>3 dni+</option>
           </select>
         </div>
+        ${(type === 'Ogłoszenia' || type === 'Katalogi') ? `
+        <div class="field-row">
+          <div class="field-label">Możliwość edycji wpisu</div>
+          <select class="field-select-native" id="fill-me">
+            <option value="NIE" ${item.mozliwoscEdycji!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${item.mozliwoscEdycji==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Miejsce na link</div>
+          <select class="field-select-native" id="fill-mnl">
+            <option value="Dedykowane pole" ${(!item.miejsceNaLink||item.miejsceNaLink==='Dedykowane pole')?'selected':''}>Dedykowane pole</option>
+            <option value="Treść" ${item.miejsceNaLink==='Treść'?'selected':''}>Treść</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Wymagana forma linku</div>
+          <select class="field-select-native" id="fill-wfl">
+            <option value="URL" ${(!item.wymaganaFormaLinku||item.wymaganaFormaLinku==='URL')?'selected':''}>URL</option>
+            <option value="Kod href" ${item.wymaganaFormaLinku==='Kod href'?'selected':''}>Kod href</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Wymaga aktywacji mailowej</div>
+          <select class="field-select-native" id="fill-wam">
+            <option value="NIE" ${item.wymagaAktywacjiMailowej!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${item.wymagaAktywacjiMailowej==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Serwis moderowany</div>
+          <select class="field-select-native" id="fill-sm">
+            <option value="NIE" ${item.serwisModerowany!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${item.serwisModerowany==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Aktywność wpisu (dni)</div>
+          <select class="field-select-native" id="fill-aw">
+            <option value="30" ${item.aktywnoscWpisu==='30'?'selected':''}>30</option>
+            <option value="60" ${item.aktywnoscWpisu==='60'?'selected':''}>60</option>
+            <option value="90" ${item.aktywnoscWpisu==='90'?'selected':''}>90</option>
+            <option value="Bezterminowo" ${(!item.aktywnoscWpisu||item.aktywnoscWpisu==='Bezterminowo')?'selected':''}>Bezterminowo</option>
+          </select>
+        </div>` : ''}
         <div class="field-row">
           <div class="field-label">Notatki</div>
           <textarea class="field-textarea" id="fill-notes" placeholder="Instrukcja, uwagi…">${escHtml(item.notes||'')}</textarea>
@@ -4014,7 +4175,18 @@
     const wr    = document.getElementById('fill-wr')?.value || 'NIE';
     const tp    = document.getElementById('fill-tp')?.value || 'Natychmiast';
     const notes = document.getElementById('fill-notes')?.value || '';
-    const data  = await callAPI('updateVerif', { id, kategoria: kat, dofollow: dof, wymagaRejestracji: wr, terminPublikacji: tp, notes }, 'POST');
+    const isOgKatFill = (type === 'Ogłoszenia' || type === 'Katalogi');
+    const me    = isOgKatFill ? (document.getElementById('fill-me')?.value || 'NIE') : '';
+    const mnl   = isOgKatFill ? (document.getElementById('fill-mnl')?.value || 'Dedykowane pole') : '';
+    const wfl   = isOgKatFill ? (document.getElementById('fill-wfl')?.value || 'URL') : '';
+    const wam   = isOgKatFill ? (document.getElementById('fill-wam')?.value || 'NIE') : '';
+    const sm    = isOgKatFill ? (document.getElementById('fill-sm')?.value || 'NIE') : '';
+    const aw    = isOgKatFill ? (document.getElementById('fill-aw')?.value || 'Bezterminowo') : '';
+    const data  = await callAPI('updateVerif', {
+      id, kategoria: kat, dofollow: dof, wymagaRejestracji: wr, terminPublikacji: tp, notes,
+      mozliwoscEdycji: me, miejsceNaLink: mnl, wymaganaFormaLinku: wfl,
+      wymagaAktywacjiMailowej: wam, serwisModerowany: sm, aktywnoscWpisu: aw
+    }, 'POST');
     if (data?.error) { alert('Błąd: ' + data.error); return; }
     document.getElementById('fill-modal')?.remove();
     loadVerification();
@@ -4352,6 +4524,51 @@
             <option value="3 dni+" ${item[16]==='3 dni+'?'selected':''}>3 dni+</option>
           </select>
         </div>
+        ${(item[3] === 'Ogłoszenia' || item[3] === 'Katalogi') ? `
+        <div class="field-row">
+          <div class="field-label">Możliwość edycji wpisu</div>
+          <select class="field-select-native" id="qe-me">
+            <option value="NIE" ${String(item[17]).toUpperCase()!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${String(item[17]).toUpperCase()==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Miejsce na link</div>
+          <select class="field-select-native" id="qe-mnl">
+            <option value="Dedykowane pole" ${(!item[18]||item[18]==='Dedykowane pole')?'selected':''}>Dedykowane pole</option>
+            <option value="Treść" ${item[18]==='Treść'?'selected':''}>Treść</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Wymagana forma linku</div>
+          <select class="field-select-native" id="qe-wfl">
+            <option value="URL" ${(!item[19]||item[19]==='URL')?'selected':''}>URL</option>
+            <option value="Kod href" ${item[19]==='Kod href'?'selected':''}>Kod href</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Wymaga aktywacji mailowej</div>
+          <select class="field-select-native" id="qe-wam">
+            <option value="NIE" ${String(item[20]).toUpperCase()!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${String(item[20]).toUpperCase()==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Serwis moderowany</div>
+          <select class="field-select-native" id="qe-sm">
+            <option value="NIE" ${String(item[21]).toUpperCase()!=='TAK'?'selected':''}>NIE</option>
+            <option value="TAK" ${String(item[21]).toUpperCase()==='TAK'?'selected':''}>TAK</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Aktywność wpisu (dni)</div>
+          <select class="field-select-native" id="qe-aw">
+            <option value="30" ${item[22]==='30'?'selected':''}>30</option>
+            <option value="60" ${item[22]==='60'?'selected':''}>60</option>
+            <option value="90" ${item[22]==='90'?'selected':''}>90</option>
+            <option value="Bezterminowo" ${(!item[22]||item[22]==='Bezterminowo')?'selected':''}>Bezterminowo</option>
+          </select>
+        </div>` : ''}
         <div class="field-row">
           <div class="field-label">Notatki</div>
           <textarea class="field-textarea" id="qe-notes" rows="3">${escHtml(item[13]||'')}</textarea>
@@ -4377,8 +4594,18 @@
     const tp     = document.getElementById('qe-tp')?.value;
     const notes  = document.getElementById('qe-notes')?.value.trim();
     const linkDo = document.getElementById('qe-link')?.value.trim() || '';
+    const me     = document.getElementById('qe-me')?.value;
+    const mnl    = document.getElementById('qe-mnl')?.value;
+    const wfl    = document.getElementById('qe-wfl')?.value;
+    const wam    = document.getElementById('qe-wam')?.value;
+    const sm     = document.getElementById('qe-sm')?.value;
+    const aw     = document.getElementById('qe-aw')?.value;
     if (!url) { alert('URL jest wymagany.'); return; }
-    const data = await callAPI('editPlace', { id, name, url, dofollow: dof, notes, linkDo, wymagaRejestracji: wr, terminPublikacji: tp }, 'POST');
+    const data = await callAPI('editPlace', {
+      id, name, url, dofollow: dof, notes, linkDo, wymagaRejestracji: wr, terminPublikacji: tp,
+      mozliwoscEdycji: me, miejsceNaLink: mnl, wymaganaFormaLinku: wfl,
+      wymagaAktywacjiMailowej: wam, serwisModerowany: sm, aktywnoscWpisu: aw
+    }, 'POST');
     if (!data || data.error) { alert('Błąd: ' + (data?.error||'Nieznany błąd')); return; }
     document.getElementById('qedit-modal').remove();
     showToast('✅ Zmiany zapisane', 'success');
