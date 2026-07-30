@@ -4000,6 +4000,13 @@
     }
     container.innerHTML = items.map(item => renderVerifCard(item, verifData.canVerify && viewMode !== 'user')).join('');
   }
+  /* Buduje <select> do edycji atrybutu miejscówki wprost w karcie weryfikacji.
+     Zawsze ma opcję "— nie wybrano —", żeby dało się zostawić puste. */
+  function vfSelect(fieldId, current, options) {
+    const opts = ['<option value="">— nie wybrano —</option>']
+      .concat(options.map(o => `<option value="${escAttr(o)}" ${current===o?'selected':''}>${escHtml(o)}</option>`));
+    return `<select class="field-select-native" id="${fieldId}" style="font-size:12px;padding:5px 8px">${opts.join('')}</select>`;
+  }
   function renderVerifCard(item, canVerify) {
     const statusMap = {
       do_weryfikacji:      ['vs-pending','Do weryfikacji'],
@@ -4009,20 +4016,23 @@
     };
     const [cls, label] = statusMap[item.status] || ['vs-pending', item.status];
     const isOgKatItem = (item.type === 'Ogłoszenia' || item.type === 'Katalogi');
+    // Admin/weryfikator może edytować te pola wprost przy weryfikacji, dopóki wpis nie jest jeszcze rozstrzygnięty.
+    const canEdit = canVerify && (item.status === 'czeka_na_akceptacje' || item.status === 'do_weryfikacji');
+    const id = item.id;
     const details = `
       <div class="verif-details">
         <div class="vd-item"><div class="vd-label">Typ</div><div class="vd-val">${escHtml(item.type||'—')}</div></div>
         <div class="vd-item"><div class="vd-label">Kategoria</div><div class="vd-val">${escHtml(item.kategoria||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Dofollow</div><div class="vd-val">${escHtml(item.dofollow||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Wymaga rejestracji</div><div class="vd-val">${escHtml(item.wymagaRejestracji||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Termin publikacji</div><div class="vd-val">${escHtml(item.terminPublikacji||'—')}</div></div>
+        <div class="vd-item"><div class="vd-label">Dofollow</div>${canEdit ? vfSelect('vf-dof-'+escAttr(id), item.dofollow, ['TAK','NIE']) : `<div class="vd-val">${escHtml(item.dofollow||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Wymaga rejestracji</div>${canEdit ? vfSelect('vf-wr-'+escAttr(id), item.wymagaRejestracji, ['TAK','NIE']) : `<div class="vd-val">${escHtml(item.wymagaRejestracji||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Termin publikacji</div>${canEdit ? vfSelect('vf-tp-'+escAttr(id), item.terminPublikacji, ['Natychmiast','do 3 dni','3 dni+']) : `<div class="vd-val">${escHtml(item.terminPublikacji||'—')}</div>`}</div>
         ${isOgKatItem ? `
-        <div class="vd-item"><div class="vd-label">Możliwość edycji</div><div class="vd-val">${escHtml(item.mozliwoscEdycji||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Miejsce na link</div><div class="vd-val">${escHtml(item.miejsceNaLink||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Wymagana forma linku</div><div class="vd-val">${escHtml(item.wymaganaFormaLinku||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Aktywacja mailowa</div><div class="vd-val">${escHtml(item.wymagaAktywacjiMailowej||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Serwis moderowany</div><div class="vd-val">${escHtml(item.serwisModerowany||'—')}</div></div>
-        <div class="vd-item"><div class="vd-label">Aktywność wpisu</div><div class="vd-val">${escHtml(item.aktywnoscWpisu||'—')}</div></div>` : ''}
+        <div class="vd-item"><div class="vd-label">Możliwość edycji</div>${canEdit ? vfSelect('vf-me-'+escAttr(id), item.mozliwoscEdycji, ['TAK','NIE']) : `<div class="vd-val">${escHtml(item.mozliwoscEdycji||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Miejsce na link</div>${canEdit ? vfSelect('vf-mnl-'+escAttr(id), item.miejsceNaLink, ['Dedykowane pole','Treść']) : `<div class="vd-val">${escHtml(item.miejsceNaLink||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Wymagana forma linku</div>${canEdit ? vfSelect('vf-wfl-'+escAttr(id), item.wymaganaFormaLinku, ['URL','Kod href']) : `<div class="vd-val">${escHtml(item.wymaganaFormaLinku||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Aktywacja mailowa</div>${canEdit ? vfSelect('vf-wam-'+escAttr(id), item.wymagaAktywacjiMailowej, ['TAK','NIE']) : `<div class="vd-val">${escHtml(item.wymagaAktywacjiMailowej||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Serwis moderowany</div>${canEdit ? vfSelect('vf-sm-'+escAttr(id), item.serwisModerowany, ['TAK','NIE']) : `<div class="vd-val">${escHtml(item.serwisModerowany||'—')}</div>`}</div>
+        <div class="vd-item"><div class="vd-label">Aktywność wpisu</div>${canEdit ? vfSelect('vf-aw-'+escAttr(id), item.aktywnoscWpisu, ['30','60','90','Bezterminowo']) : `<div class="vd-val">${escHtml(item.aktywnoscWpisu||'—')}</div>`}</div>` : ''}
       </div>
       ${item.linkDo ? `<div style="font-size:12.5px;color:var(--text-2);margin-bottom:10px;line-height:1.5">
         <strong>🔗 Link do dodanego linku:</strong>
@@ -4056,7 +4066,15 @@
   }
   async function approveItem(id) {
     const notes = document.getElementById('anotes-'+id)?.value || '';
-    const data = await callAPI('approvePlace', { id, adminNotes: notes }, 'POST');
+    // Jeśli karta ma edytowalne pola (admin/weryfikator), wyślij bieżące wartości razem z akceptacją.
+    const g = fid => document.getElementById(fid)?.value;
+    const overrides = {
+      dofollow: g('vf-dof-'+id), wymagaRejestracji: g('vf-wr-'+id), terminPublikacji: g('vf-tp-'+id),
+      mozliwoscEdycji: g('vf-me-'+id), miejsceNaLink: g('vf-mnl-'+id), wymaganaFormaLinku: g('vf-wfl-'+id),
+      wymagaAktywacjiMailowej: g('vf-wam-'+id), serwisModerowany: g('vf-sm-'+id), aktywnoscWpisu: g('vf-aw-'+id)
+    };
+    Object.keys(overrides).forEach(k => { if (overrides[k] === undefined) delete overrides[k]; });
+    const data = await callAPI('approvePlace', { id, adminNotes: notes, ...overrides }, 'POST');
     if (data?.error) { alert('Błąd: ' + data.error); return; }
     loadVerification();
     refreshDataInBackground(); // zmiana 5 — odśwież dane w tle
