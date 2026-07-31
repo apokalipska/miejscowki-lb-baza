@@ -3409,8 +3409,8 @@
               <option value="admin"       ${(u.role==='admin'||u.role==='super_admin')?'selected':''}>Administrator</option>
             </select>
           </td>
-          <td style="font-size:12px;color:var(--text-3)">${escHtml(u.firstLogin||'—')}</td>
-          <td style="font-size:12px;color:var(--text-3)">${escHtml(u.lastLogin||'—')}</td>
+          <td style="font-size:12px;color:var(--text-3)">${escHtml(u.firstLogin ? String(u.firstLogin).slice(0,10) : '—')}</td>
+          <td style="font-size:12px;color:var(--text-3)">${escHtml(u.lastLogin ? String(u.lastLogin).slice(0,10) : '—')}</td>
           <td>
             <button class="row-action-btn del" onclick="deleteUser('${escAttr(u.email)}')" title="Usuń użytkownika">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
